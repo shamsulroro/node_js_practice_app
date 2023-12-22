@@ -1,0 +1,50 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <div class="row">
+    <%- include('../shared/flash_message', 
+      { flashMessage: flashMessage, isSuccessFlashMessage: isSuccessFlashMessage }) %>
+      <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+
+    <div class="d-flex justify-content-between mt-5">
+      <div class="float-start-div"><p class="heading">Towers</p></div>
+      <div class=" d-flex float-end-div">
+        <a href="/admin/new-tower?store_id=<%= store._id %>">Add a Tower</a>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">AISLE NO.</th>
+          <th scope="col">NAME</th>
+          <th scope="col">CATEGORY</th>
+          <th scope="col">HARBOR TOWER ID</th>
+          <th scope="col">LOCKERS</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let tower of towers) { %>
+          <tr>
+            <td><%= tower._id %></td>
+            <td><%= tower.name %></td>
+            <td><%= tower.category.name %></td>
+            <td><%= tower.harbor_towerid %></td>
+            <td><%= tower.lockers_count %></td>
+            <td class="row">
+              <div class="col-3"><a href="/admin/lockers?tower_id=<%= tower._id %>" class="btn btn-primary">Lockers</a></div>
+              <div class="col-3"><a href="/admin/edit-tower/<%= tower._id %>?store_id=<%= store._id %>" class="btn btn-primary">Edit</a></div>
+              <div class="col-3">
+                <form class="col-3" action="/admin/delete-tower" method="POST">
+                  <input type="hidden" value="<%= tower._id %>" name="tower_id">
+                  <input type="hidden" value="<%= store._id %>" name="store_id">
+                  <button class="btn btn-primary" type="submit">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<%- include('../includes/end.ejs') %>

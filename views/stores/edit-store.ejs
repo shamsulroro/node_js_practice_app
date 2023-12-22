@@ -1,0 +1,48 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <main>
+    <form class="store-form" action="/admin/<% if (editing) { %>update-store<% } else { %>create-store<% } %>" 
+      method="POST">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" name="name" id="name" class="form-control" value="<% if (editing) { %><%= store.name %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="address1" class="form-label">Address1</label>
+        <input type="text" name="address1" class="form-control" id="address1" value="<% if (editing) { %><%= store.address1 %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="address2" class="form-label">Address2</label>
+        <input type="text" name="address2" class="form-control" id="address2" value="<% if (editing) { %><%= store.address2 %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="city" class="form-label">City</label>
+        <input type="text" name="city" class="form-control" id="city" value="<% if (editing) { %><%= store.city %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="state" class="form-label">State</label>
+        <input type="text" name="state" class="form-control" id="state" value="<% if (editing) { %><%= store.state %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="country" class="form-label">Country</label>
+        <input type="text" name="country" class="form-control" id="country" value="<% if (editing) { %><%= store.country %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="price">Zip</label>
+        <input type="number" name="zip" class="form-control" id="zip" value="<% if (editing) { %><%= store.zip %><% } %>">
+      </div>
+
+      <% if (editing) { %>
+          <input type="hidden" value="<%= store._id %>" name="store_id">
+      <% } %>
+
+      <button class="btn btn-primary" type="submit"><% if (editing) { %>Update Store<% } else { %>Add Store<% } %></button>
+    </form>
+  </main>
+<%- include('../includes/end.ejs') %>

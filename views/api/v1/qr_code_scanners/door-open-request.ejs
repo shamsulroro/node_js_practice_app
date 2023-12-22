@@ -1,0 +1,12 @@
+<%- include('../../../includes/head.ejs') %>
+<div class="container text-center">
+  <p class="mt-3">Would you like to open <%= locker.name %> for <%= tower.category.name %> products?</p>
+  <main>
+    <form class="store-form" action="/api/v1/qr-code-scanner" method="POST">
+      <input type="hidden" value="<%= tower._id %>" name="tower_id">
+      <input type="hidden" value="<%= locker._id %>" name="locker_id">
+      <button class="btn btn-primary" type="submit">Confirm</button>
+    </form>
+  </main>
+</div>
+<%- include('../../../includes/end.ejs') %>
