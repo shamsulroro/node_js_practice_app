@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { checkSchema } = require('express-validator');
 const isStoreAssociateAuth = require('../../middleware/isStoreAssociateAuth');
 const qrCodeScannerController = require('../../controllers/api/v1/qrCodeScannerController');
 const authenticationController = require('../../controllers/api/v1/authenticationController');
@@ -7,20 +8,19 @@ const accessLogController = require('../../controllers/api/v1/accessLogControlle
 const towersController = require('../../controllers/api/v1/towersController');
 const lockersController = require('../../controllers/api/v1/lockersController');
 const activityHistoriesController = require('../../controllers/api/v1/activityHistoriesController');
-
-// const lockersController = require('../controllers/lockersController');
-
+const { createAccessLogValidationSchema } = require('../../models/validations/accessLogValidationSchema');
+const { createActivityHistoryValidationSchema } = require('../../models/validations/activityHistoryValidationSchema');
 
 // --------------------------- QrCodeScanner routes ---------------------------
 // api/v1/qr-code-scanner?tower_id=1&locker_id=1 => GET
 router.get('/qr-code-scanner', qrCodeScannerController.getNewDoorOpenRequest);
 
 // api/v1/qr-code-scanner => POST
-router.post('/qr-code-scanner', qrCodeScannerController.postCreateDoorOpenRequest);
+router.post('/qr-code-scanner', checkSchema(createAccessLogValidationSchema), qrCodeScannerController.postCreateDoorOpenRequest);
 
 // --------------------------- Authentication routes ---------------------------
 
-// api/v1/lovalidate_usergin => POST
+// api/v1/validate_user => POST
 router.post('/validate_user', authenticationController.postValidateLogin);
 
 // api/v1/login => POST
@@ -31,7 +31,7 @@ router.post('/login', authenticationController.postLogin);
 router.get('/door_requests', isStoreAssociateAuth, accessLogController.getAccessLogs);
 
 // /admin/door_requests => POST
-router.post('/door_requests', isStoreAssociateAuth, accessLogController.postCreateAccessLog);
+router.post('/door_requests', checkSchema(createAccessLogValidationSchema), isStoreAssociateAuth, accessLogController.postCreateAccessLog);
 
 // door_requests/:id/assign_user => PUT
 router.put('/door_requests/:id/assign_user', isStoreAssociateAuth, accessLogController.putAssignStoreAssociate);
@@ -52,6 +52,6 @@ router.get('/towers/:tower_id/lockers', isStoreAssociateAuth, lockersController.
 router.get('/activity_histories', isStoreAssociateAuth, activityHistoriesController.getActivityHistories);
 
 // api/v1/activity_histories => POST
-router.post('/activity_histories', isStoreAssociateAuth, activityHistoriesController.postCreateActivityHistory);
+router.post('/activity_histories', checkSchema(createActivityHistoryValidationSchema), isStoreAssociateAuth, activityHistoriesController.postCreateActivityHistory);
 
 module.exports = router;

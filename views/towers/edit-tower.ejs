@@ -6,26 +6,55 @@
       method="POST">
       <div class="mb-3">
         <label for="name" class="form-label">Name</label>
-        <input type="text" name="name" id="name" class="form-control" value="<% if (editing) { %><%= tower.name %><% } %>">
+        <% let error = validationErrors.find( (error) => error.path == 'name' ) %>
+        <% if(error) { %>
+          <input type="text" name="name" id="name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="name" id="name" class="form-control" value="<% if (editing || tower) { %><%= tower.name %><% } %>">
+        <% } %>
       </div>
 
       <div class="mb-3">
         <label for="harbor_towerid" class="form-label">Harbor Towerid</label>
-        <input type="text" name="harbor_towerid" class="form-control" id="harbor_towerid" value="<% if (editing) { %><%= tower.harbor_towerid %><% } %>">
+        <% error = validationErrors.find( (error) => error.path === 'harbor_towerid' ) %>
+        <% if(error) { %>
+          <input type="text" name="harbor_towerid" class="form-control is-invalid" id="harbor_towerid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>
+          <input type="text" name="harbor_towerid" class="form-control" id="harbor_towerid" value="<% if (editing || tower) { %><%= tower.harbor_towerid %><% } %>">
+        <% } %>
       </div>
 
       <div class="mb-3">
         <label for="role" class="form-label">Category</label>
-        <select class="form-select" name="category" aria-label="Default select example">
-          <option value="">Please select</option>
-          <% for (let category of categories) { %>
-            <% if (editing) { %>
-              <option value="<%= category._id %>" <% if ( category._id == tower.category._id.toString()) { %>selected="selected"<% } else { %>''<% } %> ><%= category.name %></option>
-            <% } else { %>  
-              <option value="<%= category._id %>"><%= category.name %></option>
+        <% error = validationErrors.find( (error) => error.path === 'category' ) %>
+        <% if(error) { %>
+          <select class="form-select is-invalid" name="category" aria-label="Default select example">
+            <option value="">Please select</option>
+            <% for (let category of categories) { %>
+              <option value="<%= category._id %>" <% if ( category._id == error.value) { %>selected="selected"<% } else { %>''<% } %> ><%= category.name %></option>
             <% } %>
-          <% } %>
-        </select>
+          </select>
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <select class="form-select" name="category" aria-label="Default select example">
+            <option value="">Please select</option>
+            <% for (let category of categories) { %>
+              <% if (editing || tower) { %>
+                <option value="<%= category._id %>" <% if ( tower.category && category._id == tower.category.toString()) { %>selected="selected"<% } else { %>''<% } %> ><%= category.name %></option>
+              <% } else { %>  
+                <option value="<%= category._id %>"><%= category.name %></option>
+              <% } %>
+            <% } %>
+          </select>
+        <% } %>
       </div>
 
       <input type="hidden" value="<%= store._id %>" name="store">

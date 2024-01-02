@@ -1,4 +1,6 @@
 const Store = require("../models/store");
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../models/validations/formatErrorMessage');
 
 exports.getStores = (req, res, next) => {
   const successFlashMessage = req.flash('notice');
@@ -29,7 +31,9 @@ exports.getNewStore = (req, res, next) => {
     path: '/admin/new-store',
     editing: false,
     currentUser: req.session.user,
-    isAuthenticated: req.session.isLoggedIn
+    isAuthenticated: req.session.isLoggedIn,
+    validationErrors: [],
+    store: null
   });
 };
 
@@ -41,20 +45,33 @@ exports.postCreateStore = (req, res, next) => {
   const state = req.body.state;
   const country = req.body.country;
   const zip = req.body.zip;
-
   const store = new Store({
     name: name, address1: address1, address2: address2, city: city, state: state, country: country, zip: +zip
   });
-
-  store.save()
-  .then(result => {
-    console.log('Store Created');
-    req.flash('notice', 'Store was Successfully Created')
-    res.redirect('/admin/stores');
-  })
-  .catch(err => {
-    console.log(err);
-  })
+  
+  let validationErrors = formatErrorMessagesByKey(validationResult(req));
+  if(validationErrors.length > 0){
+    res.render('stores/edit-store',{
+      pageTitle: 'Add Store',
+      path: '/admin/new-store',
+      editing: false,
+      currentUser: req.session.user,
+      isAuthenticated: req.session.isLoggedIn,
+      validationErrors: validationErrors,
+      store: store
+    });
+  }
+  else {
+    store.save()
+    .then(result => {
+      console.log('Store Created');
+      req.flash('notice', 'Store was Successfully Created')
+      res.redirect('/admin/stores');
+    })
+    .catch(err => {
+      console.log(err);
+    })
+  }
 };
 
 exports.getEditStore = (req, res, next) => {
@@ -67,7 +84,8 @@ exports.getEditStore = (req, res, next) => {
       store: store,
       editing: true,
       currentUser: req.session.user,
-      isAuthenticated: req.session.isLoggedIn
+      isAuthenticated: req.session.isLoggedIn,
+      validationErrors: []
     });
   })
   .catch(err => {
@@ -75,7 +93,7 @@ exports.getEditStore = (req, res, next) => {
   })
 };
 
-exports.postUpdateStore = (req, res, next) => {
+exports.postUpdateStore = async (req, res, next) => {
   const updated_name = req.body.name;
   const updated_address1 = req.body.address1;
   const updated_address2 = req.body.address2;
@@ -85,8 +103,8 @@ exports.postUpdateStore = (req, res, next) => {
   const updated_zip = req.body.zip;
   const store_id = req.body.store_id
 
-  Store.findById(store_id)
-  .then(store  => {
+  try {
+    const store = await Store.findById(store_id);
     store.name = updated_name;
     store.address1 = updated_address1;
     store.address2 = updated_address2;
@@ -94,16 +112,30 @@ exports.postUpdateStore = (req, res, next) => {
     store.state = updated_state;
     store.country = updated_country;
     store.zip = updated_zip;
-    return store.save();
-  })
-  .then(result => {
-    console.log('Updated Successfully');
-    req.flash('notice', 'Store was Successfully Updated')
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      res.render('stores/edit-store', {
+        pageTitle: 'Edit Store',
+        path: '/admin/edit-store',
+        store: store,
+        editing: true,
+        currentUser: req.session.user,
+        isAuthenticated: req.session.isLoggedIn,
+        validationErrors: validationErrors,
+        store: store
+      });
+    }
+    else {
+      await store.save();
+      console.log('Updated Successfully');
+      req.flash('notice', 'Store was Successfully Updated')
+      res.redirect('/admin/stores');
+    }
+  } catch (error) {
+    console.log(error);
+    req.flash('alert', error)
     res.redirect('/admin/stores');
-  })
-  .catch(err => {
-    console.log(err);
-  })
+  }
 };
 
 exports.postDeleteStore = (req, res, next) => {

@@ -1,5 +1,7 @@
 const AccessLog = require('../../../models/access_log');
 const ActivityHistory = require('../../../models/activity_history');
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../../../models/validations/formatErrorMessage');
 
 exports.getActivityHistories = async (req, res, next) => {
   try {
@@ -54,31 +56,31 @@ exports.getActivityHistories = async (req, res, next) => {
 };
 
 exports.postCreateActivityHistory = async (req, res, next) => {
-  const activityHistoryParams = req.body.activity_history;
-  if(!activityHistoryParams){
-    return res.status(422).json({ error: 'Missing activity_history parameter key' });
-  }
-
   try {
     const currentUser = req.session.user;
-    const access_log_id = activityHistoryParams.access_log_id;
-    const status = activityHistoryParams.status;
-    const activity = activityHistoryParams.activity;
+    const access_log_id = req.body.access_log;
+    const status = req.body.status;
+    const activity = req.body.activity;
     const access_log = await AccessLog.findById(access_log_id).populate({ path: 'tower' }).populate({ path: 'locker' })
-
+    
     if(access_log && access_log.store.toString() === currentUser.store.toString() ){
-      console.log('Working')
-      const activity_history = new ActivityHistory({ tower: access_log.tower._id, locker: access_log.locker._id, 
-        store: access_log.store, access_log: access_log._id, harbor_towerid: access_log.tower.harbor_towerid,
-        harbor_lockerid: access_log.locker.harbor_lockerid,
-        activity: activity, status: status, user: currentUser._id });
-      await activity_history.save();
-      return res.json(activity_history);
+      let validationErrors = formatErrorMessagesByKey(validationResult(req));
+      if(validationErrors.length > 0) {
+        return res.status(422).json(validationErrors);
+      }
+      else{
+        const activity_history = new ActivityHistory({ tower: access_log.tower._id, locker: access_log.locker._id, 
+          store: access_log.store, access_log: access_log._id, harbor_towerid: access_log.tower.harbor_towerid,
+          harbor_lockerid: access_log.locker.harbor_lockerid,
+          activity: activity, status: status, user: currentUser._id });
+        await activity_history.save();
+        return res.json(activity_history);
+      }
     }
     else {
       return res.status(403).json({
         error: 'You are not authorized to perform this action. Please contact admin'
-      })
+      });
     }
   } catch (error) {
     return res.status(422).json({ error: error });

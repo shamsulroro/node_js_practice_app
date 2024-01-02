@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 
 const User = require('../models/user');
+const { validationResult } = require('express-validator');
 
 exports.getLogin = (req, res, next) => {
   const successFlashMessage = req.flash('notice');
@@ -14,40 +15,58 @@ exports.getLogin = (req, res, next) => {
     currentUser: null,
     flashMessage: flashMessage,
     isSuccessFlashMessage: isSuccessFlashMessage,
-    editing: false
+    editing: false,
+    validationErrors: []
   });
 };
 
 exports.postLogin = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  User.findOne({ email: email })
-    .then(user => {
-      if (!user) {
-        req.flash('error', 'Invalid email or password.');
-        return res.redirect('/login');
-      }
-      bcrypt
-        .compare(password, user.password)
-        .then(doMatch => {
-          if (doMatch) {
-            req.session.isLoggedIn = true;
-            req.session.user = user;
-            return req.session.save(err => {
-              console.log(err);
-              req.flash('notice', 'You were successfully logged in');
-              res.redirect('/');
-            });
-          }
+  let validationErrors = validationResult(req)
+  validationErrors = validationErrors ? validationErrors.errors : [];
+  console.log('validationErrors', validationErrors);
+  if(validationErrors.length > 0){
+    res.render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      isAuthenticated: false,
+      currentUser: null,
+      flashMessage: null,
+      isSuccessFlashMessage: false,
+      editing: false,
+      validationErrors: validationErrors
+    });
+  }
+  else {
+    User.findOne({ email: email })
+      .then(user => {
+        if (!user) {
           req.flash('error', 'Invalid email or password.');
-          res.redirect('/login');
-        })
-        .catch(err => {
-          console.log(err);
-          res.redirect('/login');
-        });
-    })
-    .catch(err => console.log(err));
+          return res.redirect('/login');
+        }
+        bcrypt
+          .compare(password, user.password)
+          .then(doMatch => {
+            if (doMatch) {
+              req.session.isLoggedIn = true;
+              req.session.user = user;
+              return req.session.save(err => {
+                console.log(err);
+                req.flash('notice', 'You were successfully logged in');
+                res.redirect('/');
+              });
+            }
+            req.flash('error', 'Invalid email or password.');
+            res.redirect('/login');
+          })
+          .catch(err => {
+            console.log(err);
+            res.redirect('/login');
+          });
+      })
+      .catch(err => console.log(err));
+  }    
 };
 
 exports.postLogout = (req, res, next) => {

@@ -1,6 +1,7 @@
 const Store = require('../models/store');
 const Category = require('../models/category');
-const category = require('../models/category');
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../models/validations/formatErrorMessage');
 
 exports.getCategories = async (req, res, next) => {
   const successFlashMessage = req.flash('notice');
@@ -36,30 +37,48 @@ exports.getNewCategory = async (req, res, next) => {
       pageTitle: 'Add Category',
       path: '/admin/categories',
       editing: false,
+      category: null,
       isAuthenticated: req.session.isLoggedIn,
       currentUser: req.session.user,
       nestedData: true,
-      store: store
+      store: store,
+      validationErrors: []
     });
   } catch (error) {
     console.log(error);
   }
 };
 
-exports.postCreateCategory = (req, res, next) => {
+exports.postCreateCategory = async (req, res, next) => {
   const name = req.body.name;
-  const store = req.body.store;
-  const category = new Category({ name: name, store: store });
+  const store_id = req.body.store;
 
-  category.save()
-  .then(result => {
-    console.log('Category Created');
-    req.flash('notice', 'Category was Successfully Created')
-    res.redirect(`/admin/categories?store_id=${store}`);
-  })
-  .catch(err => {
-    console.log(err);
-  })
+  try {
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    const category = new Category({ name: name, store: store_id });
+    if(validationErrors.length > 0){
+      const store = await Store.findById(store_id);
+      res.render('categories/edit-category',{
+        pageTitle: 'Add Category',
+        path: '/admin/categories',
+        editing: false,
+        category: category,
+        isAuthenticated: req.session.isLoggedIn,
+        currentUser: req.session.user,
+        nestedData: true,
+        store: store,
+        validationErrors: validationErrors
+      });
+    }
+    else {
+      await category.save()
+      console.log('Category Created');
+      req.flash('notice', 'Category was Successfully Created')
+      res.redirect(`/admin/categories?store_id=${store_id}`);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 exports.getEditCategory = async (req, res, next) => {
@@ -70,35 +89,51 @@ exports.getEditCategory = async (req, res, next) => {
     const category = await Category.findById(category_id);
     res.render('categories/edit-category', {
       pageTitle: 'Edit Category',
-      path: '/admin/edit-category',
+      path: '/admin/categories',
       category: category,
       editing: true,
       nestedData: true,
       isAuthenticated: req.session.isLoggedIn,
       currentUser: req.session.user,
-      store: store
+      store: store,
+      validationErrors: []
     }) 
   } catch (error) {
     console.log(error)
   }
 };
 
-exports.postUpdateCategory = (req, res, next) => {
+exports.postUpdateCategory = async (req, res, next) => {
   const updated_name = req.body.name;
   const category_id = req.body.category_id;
-  Category.findById(category_id)
-  .then(category  => {
+
+  try {
+    const category = await Category.findById(category_id).populate({ path: 'store' });
+    const store = category.store;
     category.name = updated_name;
-    return category.save();
-  })
-  .then(result => {
-    console.log('Updated Successfully');
-    req.flash('notice', 'Category was Successfully Updated')
-    res.redirect(`/admin/categories?store_id=${result.store._id}`);
-  })
-  .catch(err => {
-    console.log(err);
-  })
+
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      res.render('categories/edit-category', {
+        pageTitle: 'Edit Category',
+        path: '/admin/categories',
+        category: category,
+        editing: true,
+        nestedData: true,
+        isAuthenticated: req.session.isLoggedIn,
+        currentUser: req.session.user,
+        store: store,
+        validationErrors: validationErrors
+      }) 
+    } 
+    else{
+      await category.save();
+      req.flash('notice', 'Category was Successfully Updated')
+      res.redirect(`/admin/categories?store_id=${store._id}`);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 exports.postDeleteCategory = (req, res, next) => {
