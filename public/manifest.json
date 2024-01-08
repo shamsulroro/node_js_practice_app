@@ -1,0 +1,17 @@
+{
+  "lang": "en-us",
+  "name": "Node app practice",
+  "short_name": "Node app practice",
+  "description": "Harbor target app backend practice",
+  "start_url": "/login",
+  "background_color": "#2f3d58",
+  "theme_color": "#2f3d58",
+  "orientation": "any",
+  "display": "standalone",
+  "icons": [
+      {
+        "src": "/images/icon.png",
+        "sizes": "512x512"
+      }
+  ]
+}

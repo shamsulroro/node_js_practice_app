@@ -13,3 +13,4 @@ async function populateLockers(event) {
     lockersElement.innerHTML = lockerOptions;
   }
 }
+
