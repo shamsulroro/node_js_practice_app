@@ -1,0 +1,33 @@
+<div class="float-start-div">
+  <div class="row">
+    <div class="col-12">
+      <div class="row">
+        <p class="heading m-0 p-0"><%= store.name %></p>
+      </div>
+      <div class="row">
+        <div class="col-3 p-0 subheading">
+          <p><%= store._id%> <span class="text-muted">|</span></p>
+        </div>
+        <div class="col p-0 subheading">
+          <p><%= store.address1 %> <%= store.address2 %> <%= store.city %> <%= store.state %>, <%= store.country %> <%= store.zip %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link <%= (path === '/admin/store/users' && nestedData) ? 'active' : '' %>" aria-current="page" href="/admin/users?store_id=<%= store._id %>">Users</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link <%= (path === '/admin/towers' && nestedData) ? 'active' : '' %>" aria-current="page" href="/admin/towers?store_id=<%= store._id %>">Aisles</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link <%= (path === '/admin/activity-histories' && nestedData) ? 'active' : '' %>" aria-current="page" href="/admin/activity-histories?store_id=<%= store._id %>">Activity History</a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link <%= (path === '/admin/categories' && nestedData) ? 'active' : '' %>" aria-current="page" href="/admin/categories?store_id=<%= store._id %>">Categories</a>
+  </li>
+</ul>

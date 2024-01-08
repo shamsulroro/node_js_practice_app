@@ -1,0 +1,46 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+  <div class="d-flex justify-content-between mt-5">
+    <div class="float-start-div"><h4 class="heading">Lockers</h4></div>
+  </div>
+  <main>
+    <form class="store-form" action="/admin/<% if (editing) { %>update-locker<% } else { %>create-locker<% } %>" 
+      method="POST">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <% let error = validationErrors.find( (error) => error.path == 'name' ) %>
+        <% if(error) { %>
+          <input type="text" name="name" id="name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="name" id="name" class="form-control" value="<% if (editing || locker) { %><%= locker.name %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="harbor_lockerid" class="form-label">Harbor Lockerid</label>
+        <% error = validationErrors.find( (error) => error.path == 'harbor_lockerid' ) %>
+        <% if(error) { %>
+          <input type="text" name="harbor_lockerid" class="form-control is-invalid" id="harbor_lockerid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %> 
+          <input type="text" name="harbor_lockerid" class="form-control" id="harbor_lockerid" value="<% if (editing || locker) { %><%= locker.harbor_lockerid %><% } %>">
+        <% } %>
+      </div>
+
+      <input type="hidden" value="<%= store._id %>" name="store">
+      <input type="hidden" value="<%= tower._id %>" name="tower">
+
+      <% if (editing) { %>
+        <input type="hidden" value="<%= locker._id %>" name="locker_id">
+      <% } %>
+
+      <button class="btn btn-primary" type="submit"><% if (editing) { %>Update Locker<% } else { %>Add Locker<% } %></button>
+    </form>
+  </main>
+<%- include('../includes/end.ejs') %>

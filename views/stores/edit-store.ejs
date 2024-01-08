@@ -1,0 +1,113 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <link rel="stylesheet" href="/country-select-js/build/css/countrySelect.css">
+
+  <main>
+    <form class="store-form" action="/admin/<% if (editing) { %>update-store<% } else { %>create-store<% } %>" 
+      method="POST">
+      <% if(validationErrors.length > 0 ) { %>
+        <ul>
+          <% for (let error of validationErrors) { %>
+            <li class="bg-danger">
+              <%= error.path.charAt(0).toUpperCase() + error.path.slice(1) %> <%= error.msg %>
+            </li>
+          <% } %>
+        </ul>  
+      <% } %>
+
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <% let error = validationErrors.find( (error) => error.path === 'name' ) %>
+        <% if(error) { %>
+          <input type="text" name="name" id="name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="name" id="name" class="form-control" value="<% if (editing || store) { %><%= store.name %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="address1" class="form-label">Address1</label>
+        <% error = validationErrors.find( (error) => error.path === 'address1' ) %>
+        <% if(error) { %>
+          <input type="text" name="address1" class="form-control is-invalid" id="address1" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="address1" class="form-control" id="address1" value="<% if (editing || store) { %><%= store.address1 %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="address2" class="form-label">Address2</label>
+        <input type="text" name="address2" class="form-control" id="address2" value="<% if (editing || store) { %><%= store.address2 %><% } %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="city" class="form-label">City</label>
+        <% error = validationErrors.find( (error) => error.path === 'city' ) %>
+        <% if(error) { %>
+          <input type="text" name="city" class="form-control is-invalid" id="city" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="city" class="form-control" id="city" value="<% if (editing || store) { %><%= store.city %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="state" class="form-label">State</label>
+        <% error = validationErrors.find( (error) => error.path === 'state' ) %>
+        <% if(error) { %>
+          <input type="text" name="state" class="form-control is-invalid" id="state" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="state" class="form-control" id="state" value="<% if (editing || store) { %><%= store.state %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="country" class="form-label">Country</label>
+        <% error = validationErrors.find( (error) => error.path === 'country' ) %>
+        <% if(error) { %>
+          <input type="text" name="country" class="form-control is-invalid" id="country" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="country" class="form-control" id="country" value="<% if (editing || store) { %><%= store.country %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="price">Zip</label>
+        <% error = validationErrors.find( (error) => error.path === 'zip' ) %>
+        <% if(error) { %>
+          <input type="number" name="zip" class="form-control is-invalid" id="zip" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="number" name="zip" class="form-control" id="zip" value="<% if (editing || store) { %><%= store.zip %><% } %>">
+        <% } %>
+      </div>
+
+      <% if (editing) { %>
+          <input type="hidden" value="<%= store._id %>" name="store_id">
+      <% } %>
+
+      <button class="btn btn-primary" type="submit"><% if (editing) { %>Update Store<% } else { %>Add Store<% } %></button>
+    </form>
+  </main>
+  
+  <script src="/country-select-js/build/js/countrySelect.min.js"></script>
+  <script>
+    $("#country").countrySelect();
+  </script>
+<%- include('../includes/end.ejs') %>

@@ -1,0 +1,65 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <div class="row">
+    <%- include('../shared/flash_message', 
+      { flashMessage: flashMessage, isSuccessFlashMessage: isSuccessFlashMessage }) %>
+      <% if(nestedData) { %>
+        <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+      <% } %>
+
+    <div class="d-flex justify-content-between mt-5">
+      <div class="float-start-div"><p class="heading">Users</p></div>
+      <div class=" d-flex float-end-div">
+        <% if(nestedData){ %>
+          <a href="/admin/new-user?store_id=<%= store._id %>">Add User</a>
+        <% } else { %>
+          <a href="/admin/new-user">Add User</a>
+        <% } %>  
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID NO</th>
+          <th scope="col">NAME</th>
+          <th scope="col">STORE</th>
+          <th scope="col">TYPE</th>
+          <th scope="col">EMAIL</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let user of users) { %>
+          <tr>
+            <td><%= user._id %></td>
+            <td><%= user.first_name %> <%= user.last_name %></td>
+            <td><%= user.store && user.store.name %></td>
+            <td><%= user.role %></td>
+            <td><%= user.email %></td>
+            <td class="row">
+              <% if(nestedData){ %>
+                <div class="col-3"><a href="/admin/edit-user/<%= user._id %>?store_id=<%= store._id %>" class="btn btn-primary">Edit</a></div>
+                <div class="col-3">
+                  <form class="col-3" action="/admin/delete-user" method="POST">
+                    <input type="hidden" value="<%= store._id %>" name="store_id">
+                    <input type="hidden" value="<%= user._id %>" name="user_id">
+                    <button class="btn btn-primary" type="submit">Delete</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <div class="col-3"><a href="/admin/edit-user/<%= user._id %>" class="btn btn-primary">Edit</a></div>
+                <div class="col-3">
+                  <form class="col-3" action="/admin/delete-user" method="POST">
+                    <input type="hidden" value="<%= user._id %>" name="user_id">
+                    <button class="btn btn-primary" type="submit">Delete</button>
+                  </form>
+                </div>
+              <% } %>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<%- include('../includes/end.ejs') %>

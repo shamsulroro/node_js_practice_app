@@ -1,0 +1,167 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <% if(nestedData) { %>
+    <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+  <% } %>
+  <main>
+    <form class="product-form" action="/admin/<% if (editing) { %>update-user<% } else { %>add-user<% } %>" 
+      method="POST">
+      <div class="mb-3">
+        <label for="role" class="form-label">Role</label>
+        <% if(currentUser.role == 1 && store) { %>
+          <div class="form-control">Admin</div>
+          <input type="hidden" value="2" name="role">
+        <% } else { %>
+          <% let error = validationErrors.find( (error) => error.path === 'role' ) %>
+          <% if(error) { %>
+            <select id="userRole" class="form-select is-invalid" name="role" aria-label="Default select example">
+              <option value="">Please select a role</option>
+              <% for (let roleOption of roleOptions) { %>
+                <option value="<%= roleOption[1] %>" <% if ( error.value== roleOption[1]) { %>selected="selected"<% } else { %>''<% } %> ><%= roleOption[0] %></option>
+              <% } %>
+            </select>
+            <div class="invalid-feedback">
+              <%= error.msg %>
+            </div>
+          <% } else { %>  
+            <select id="userRole" class="form-select" name="role" aria-label="Default select example">
+              <option value="">Please select a role</option>
+              <% for (let roleOption of roleOptions) { %>
+                <% if (editing || user) { %>
+                  <option value="<%= roleOption[1] %>" <% if ( user.role == roleOption[1]) { %>selected="selected"<% } else { %>''<% } %> ><%= roleOption[0] %></option>
+                <% } else { %>  
+                  <option value="<%= roleOption[1] %>"><%= roleOption[0] %></option>
+                <% } %>
+              <% } %>
+            </select>
+          <% } %>
+        <% } %>  
+      </div> 
+
+      <div class="mb-3" id="selectStore" style="display: <% if (user && user.role == 1) { %>none<% } else { %><% } %>;">
+        <% if(currentUser.role == 1 && !store) { %>
+          <label for="role" class="form-label">Store</label>
+          <% error = validationErrors.find( (error) => error.path === 'store' ) %>
+          <% if(error) { %>
+            <select class="form-select is-invalid" name="store" aria-label="Default select example">
+              <option value="">Please select a store</option>
+              <% for (let store of stores) { %>
+                <option value="<%= store._id %>" <% if ( error.value == store._id) { %>selected="selected"<% } else { %>''<% } %> ><%= store.name %></option>
+              <% } %>
+            </select>
+            <div class="invalid-feedback">
+              <%= error.msg %>
+            </div>
+          <% } else { %>
+            <select class="form-select" name="store" aria-label="Default select example">
+              <option value="">Please select a store</option>
+              <% for (let store of stores) { %>
+                <% if (editing || user) { %>
+                  <option value="<%= store._id %>" <% if ( user.store && user.store._id.toString() == store._id) { %>selected="selected"<% } else { %>''<% } %> ><%= store.name %></option>
+                <% } else { %>  
+                  <option value="<%= store._id %>"><%= store.name %></option>
+                <% } %>
+              <% } %>
+            </select>
+          <% } %>
+        <%} else if(currentUser.role == 1 && store) { %>
+          <input type="hidden" value="<%= store._id %>" name="store">
+        <% } else { %>
+          <input type="hidden" value="<%= currentUser.store %>" name="store">
+        <% } %>  
+      </div>
+
+      <div class="mb-3">
+        <label for="first_name" class="form-label">First Name</label>
+        <% error = validationErrors.find( (error) => error.path === 'first_name' ) %>
+        <% if(error) { %>
+          <input type="text" name="first_name" id="first_name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>
+          <input type="text" name="first_name" id="first_name" class="form-control" value="<% if (editing || user) { %><%= user.first_name %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="last_name" class="form-label">Last Name</label>
+        <% error = validationErrors.find( (error) => error.path === 'last_name' ) %>
+        <% if(error) { %>
+          <input type="text" name="last_name" id="last_name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>
+          <input type="text" name="last_name" id="last_name" class="form-control" value="<% if (editing || user) { %><%= user.last_name %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="email">Email</label>
+        <% error = validationErrors.find( (error) => error.path === 'email' ) %>
+        <% if(error) { %>
+          <input type="text" name="email" class="form-control is-invalid" id="email" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>
+          <input type="text" name="email" class="form-control" id="email" value="<% if (editing || user) { %><%= user.email %><% } %>">
+        <% } %>
+      </div>
+
+      <div class="mb-3" id="passwordFields">
+        <label for="password" class="form-label">Password</label>
+        <% error = validationErrors.find( (error) => error.path === 'password' ) %>
+        <% if(error) { %>
+          <input type="password" name="password" class="form-control is-invalid" id="password" >
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>
+          <input type="password" name="password" class="form-control" id="password" >
+        <% } %>
+      </div>
+
+      <div id="storeAssociateFields" style="display: <% if (editing && user.role == 3) { %><% } else { %>none<% } %>;">
+        <div class="mb-3">
+          <label for="username">Username</label>
+          <% error = validationErrors.find( (error) => error.path === 'username' ) %>
+          <% if(error) { %>
+            <input type="text" name="username" class="form-control is-invalid" id="username" value="<%= error.value %>">
+            <div class="invalid-feedback">
+              <%= error.msg %>
+            </div>
+          <% } else { %>
+            <input type="text" name="username" class="form-control" id="username" value="<% if (editing || user) { %><%= user.username %><% } %>">
+          <% } %>
+        </div>
+
+        <div class="mb-3">
+          <label for="login_pin" class="form-label">Login Pin</label>
+          <% error = validationErrors.find( (error) => error.path === 'login_pin' ) %>
+          <% if(error) { %>
+            <input type="password" name="login_pin" maxlength=4 class="form-control is-invalid" id="login_pin" >
+            <div class="invalid-feedback">
+              <%= error.msg %>
+            </div>
+          <% } else { %>
+            <input type="password" name="login_pin" maxlength=4 class="form-control" id="login_pin" >
+          <% } %>
+        </div>
+      </div>
+     
+      <% if (editing) { %>
+        <input type="hidden" value="<%= user._id %>" name="user_id">
+      <% } %>
+
+      <input type="hidden" value="<%= nestedData %>" name="is_nested_data">
+
+      <button class="btn btn-primary" type="submit"><% if (editing) { %>Update User<% } else { %>Add User<% } %></button>
+    </form>
+  </main>
+  
+  <!-- This is custom js file to run js in the client side -->
+  <script src="/js/user.js"></script>
+
+<%- include('../includes/end.ejs') %>

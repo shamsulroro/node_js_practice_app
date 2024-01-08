@@ -1,0 +1,32 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <%- include('../shared/flash_message', 
+  { flashMessage: flashMessage, isSuccessFlashMessage: isSuccessFlashMessage }) %>
+
+  <main>
+    <form class="login-form" action="/login" method="POST">
+      <div class="mb-3">
+        <label for="email">Email</label>
+        <% if(validationErrors.length == 0 ) { %>
+          <input type="text" name="email" class="form-control" id="email" >
+        <% } else { %>  
+          <% for (let error of validationErrors) { %>
+            <% if(error.path === 'email'){ %>
+              <input type="text" name="email" class="form-control is-invalid" id="email", value="<%= error.value %>">
+              <div class="invalid-feedback">
+                <%= error.msg %>
+              </div>
+            <% } %>
+          <% } %>
+        <% } %>
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" id="password" >
+      </div>
+
+      <button class="btn btn-primary" type="submit">Login</button>
+    </form>
+  </main>
+<%- include('../includes/end.ejs') %>

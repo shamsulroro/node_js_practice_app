@@ -1,0 +1,143 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <div class="row">
+    <%- include('../shared/flash_message', 
+      { flashMessage: flashMessage, isSuccessFlashMessage: isSuccessFlashMessage }) %>
+    <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+
+    <div class="row mt-3">
+      <form class="activity-history-form" action="/admin/activity-histories" method="get" >
+        <input type="hidden" value="<%= store._id %>" name="store_id">
+  
+        <div class="row activity-filter-form">
+          <div class=' col-3 input-group flex-nowrap'>
+            <label for="role" class="form-label">Store Associate</label>
+            <select class="form-select" name="user" aria-label="Default select example">
+              <option value="">All</option>
+              <% for (let storeAssociate of storeAssociates) { %>
+                <% if (searchedQuery.user) { %>
+                  <option value="<%= storeAssociate._id %>" <% if ( searchedQuery.user === storeAssociate._id.toString() ) { %>selected="selected"<% } else { %>''<% } %> ><%= storeAssociate.first_name %> <%= storeAssociate.last_name %></option>
+                <% } else { %>  
+                  <option value="<%= storeAssociate._id %>"><%= storeAssociate.first_name %> <%= storeAssociate.last_name %></option>
+                <% } %>
+              <% } %>
+            </select>
+          </div>
+
+          <div class=' col-3 input-group flex-nowrap'>
+            <label for="role" class="form-label">Aisle</label>
+            <select class="form-select" name="tower" aria-label="Default select example" onchange="populateLockers(event)">
+              <option value="">All</option>
+              <% for (let tower of towers) { %>
+                <% if (searchedQuery.tower) { %>
+                  <option value="<%= tower._id %>" <% if ( searchedQuery.tower === tower._id.toString() ) { %>selected="selected"<% } else { %>''<% } %> ><%= tower.name %></option>
+                <% } else { %>  
+                  <option value="<%= tower._id %>"><%= tower.name %></option>
+                <% } %>
+              <% } %>
+            </select>
+          </div>
+
+          <div class='col-3 input-group flex-nowrap'>
+            <label for="role" class="form-label">Door</label>
+            <select class="form-select" name="locker" aria-label="Default select example" id="lockers">
+              <option value="">All</option>
+              <% for (let locker of lockers) { %>
+                <% if (searchedQuery.tower) { %>
+                  <option value="<%= locker._id %>" <% if ( searchedQuery.locker === locker._id.toString() ) { %>selected="selected"<% } else { %>''<% } %> ><%= locker.name %></option>
+                <% } else { %>  
+                  <option value="<%= locker._id %>"><%= locker.name %></option>
+                <% } %>
+              <% } %>
+            </select>
+          </div
+
+          <div class="col-3 input-group flex-nowrap">
+            <label for="role" class="form-label">State</label>
+            <select class="form-select" name="status" aria-label="Default select example">
+              <option value="">All</option>
+              <% for (let status of ['received', 'error', 'success', 'expired']) { %>
+                <% if (searchedQuery.status) { %>
+                  <option value="<%= status %>" <% if ( searchedQuery.status === status ) { %>selected="selected"<% } else { %>''<% } %> ><%= status %></option>
+                <% } else { %>  
+                  <option value="<%= status %>"><%= status %></option>
+                <% } %>
+              <% } %>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+      </form>
+    </div>
+
+    <br>  
+    
+
+    <!-- totalDocs: 26,
+    limit: 5,
+    totalPages: 6,
+    page: 1,
+    pagingCounter: 1,
+    hasPrevPage: false,
+    hasNextPage: true,
+    prevPage: null,
+    nextPage: 2 -->
+
+
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <li class="page-item">
+          <a class="page-link <%= result.hasPrevPage ? '' : 'disabled' %>" href="/admin/activity-histories?store_id=<%=store._id%>&page=<%= result.prevPage %>">Previous</a>
+        </li>
+
+        <% for(let page of pages) { %>
+          <% if(page == '...') { %>
+            <li class="page-item disabled">
+              <a class="page-link" href="/admin/activity-histories?store_id=<%=store._id%>&page=<%= page %>"><%= page %></a>
+            </li>
+          <% } else { %>
+            <li class="page-item <%= result.page == page ? 'active' : '' %>">
+              <a class="page-link" href="/admin/activity-histories?store_id=<%=store._id%>&page=<%= page %>"><%= page %></a>
+            </li>
+          <% } %>  
+        <% } %>
+        <a class="page-link <%= result.hasNextPage ? '' : 'disabled' %>" href="/admin/activity-histories?store_id=<%=store._id%>&page=<%= result.nextPage %>">Next</a>
+        </li>
+      </ul>
+    </nav>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID NO.</th>
+          <th scope="col">REQUEST NO.</th>
+          <th scope="col">STORE ASSOCIATE</th>
+          <th scope="col">AISLE NO. > DOOR NO.</th>
+          <th scope="col">CATEGORY</th>
+          <th scope="col">STATE</th>
+          <th scope="col">TIME</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let activity_history of activity_histories) { %>
+          <tr>
+            <td><%= activity_history._id %></td>
+            <td><%= activity_history.access_log %></td>
+            <td>
+              <% if(activity_history.user){ %>
+                <%= activity_history.user.first_name %> <%= activity_history.user.last_name %>
+              <% } %>
+            </td>
+            <td>
+              <%= activity_history.tower.name %> > <%= activity_history.locker.name %>
+            </td>
+            <td><%= activity_history.tower.category.name %></ts>
+            <td><%= activity_history.activity %></td>
+            <td><%= activity_history.createdAt %></td>
+            </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<%- include('../includes/end.ejs') %>

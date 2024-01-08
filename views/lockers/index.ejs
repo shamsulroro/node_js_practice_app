@@ -1,0 +1,45 @@
+<%- include('../includes/head.ejs') %>
+  <%- include('../includes/navigation.ejs') %>
+  <div class="row">
+    <%- include('../shared/flash_message', 
+      { flashMessage: flashMessage, isSuccessFlashMessage: isSuccessFlashMessage }) %>
+      <%- include('../shared/store_nested_navigation', { store: store, nestedData: nestedData }) %>
+
+    <div class="d-flex justify-content-between mt-5">
+      <div class="float-start-div"><p class="heading">Lockers</p></div>
+      <div class=" d-flex float-end-div">
+        <a href="/admin/new-locker?tower_id=<%= tower._id %>">Add a Locker</a>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">LOCKER NO.</th>
+          <th scope="col">NAME</th>
+          <th scope="col">HARBOR LOCKER ID</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let locker of lockers) { %>
+          <tr>
+            <td><%= locker._id %></td>
+            <td><%= locker.name %></td>
+            <td><%= locker.harbor_lockerid %></td>
+            <td class="row">
+              <div class="col-3"><a href="/admin/edit-locker/<%= locker._id %>" class="btn btn-primary">Edit</a></div>
+              <div class="col-3">
+                <form class="col-3" action="/admin/delete-locker" method="POST">
+                  <input type="hidden" value="<%= locker._id %>" name="locker_id">
+                  <input type="hidden" value="<%= tower._id %>" name="tower_id">
+                  <button class="btn btn-primary" type="submit">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<%- include('../includes/end.ejs') %>
