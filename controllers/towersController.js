@@ -1,6 +1,8 @@
 const Store = require('../models/store');
 const Tower = require("../models/tower");
 const Category = require('../models/category');
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../models/validations/formatErrorMessage');
 
 exports.getTowers = async (req, res, next) => {
   const successFlashMessage = req.flash('notice');
@@ -37,12 +39,14 @@ exports.getNewTower = async (req, res, next) => {
     res.render('towers/edit-tower',{
       pageTitle: 'Add Tower',
       path: '/admin/towers',
+      tower: null,
       editing: false,
       isAuthenticated: req.session.isLoggedIn,
       currentUser: req.session.user,
       nestedData: true,
       store: store,
-      categories: categories
+      categories: categories,
+      validationErrors: []
     });
   } catch (error) {
     console.log(error);
@@ -50,23 +54,43 @@ exports.getNewTower = async (req, res, next) => {
 };
 
 exports.postCreateTower = async (req, res, next) => {
-  const name = req.body.name;
-  const harbor_towerid = req.body.harbor_towerid;
-  const store = req.body.store;
-  const category = req.body.category;
-  const tower = new Tower({
-    name: name, harbor_towerid: harbor_towerid, store: store, category: category, lockers_count: 0
-  });
+  try {
+    const store_id = req.body.store;
+    const name = req.body.name;
+    const harbor_towerid = req.body.harbor_towerid;
+    const category_id = req.body.category;
+    const tower = new Tower({
+      name: name, harbor_towerid: harbor_towerid, store: store_id, category: category_id, lockers_count: 0
+    });
 
-  tower.save()
-  .then(result => {
-    console.log('Tower Created');
-    req.flash('notice', 'Tower was Successfully Created')
-    res.redirect(`/admin/towers?store_id=${store}`);
-  })
-  .catch(err => {
-    console.log(err);
-  })
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      const categories = await Category.find({store: { _id: store_id }})
+      const store = await Store.findById(store_id);
+
+      console.log('tower', tower)
+      console.log('validationErrors', validationErrors)
+      res.render('towers/edit-tower',{
+        pageTitle: 'Add Tower',
+        path: '/admin/towers',
+        tower: tower,
+        editing: false,
+        isAuthenticated: req.session.isLoggedIn,
+        currentUser: req.session.user,
+        nestedData: true,
+        store: store,
+        categories: categories,
+        validationErrors: validationErrors
+      });
+    }
+    else {
+      await tower.save();
+      req.flash('notice', 'Tower was Successfully Created')
+      res.redirect(`/admin/towers?store_id=${store_id}`);
+    }
+  } catch (error) {
+    
+  }
 };
 
 exports.getEditTower = async (req, res, next) => {
@@ -85,7 +109,8 @@ exports.getEditTower = async (req, res, next) => {
       currentUser: req.session.user,
       nestedData: true,
       store: store,
-      categories: categories
+      categories: categories,
+      validationErrors: []
     });
   })
   .catch(err => {
@@ -94,27 +119,43 @@ exports.getEditTower = async (req, res, next) => {
 };
 
 exports.postUpdateTower = async (req, res, next) => {
-  const name = req.body.name;
-  const harbor_towerid = req.body.harbor_towerid;
-  const store = req.body.store;
-  const category = req.body.category;
-  const tower_id = req.body.tower_id
-
-  Tower.findById(tower_id)
-  .then(tower  => {
+  try {
+    const store_id = req.body.store;
+    const tower_id = req.body.tower_id
+    const name = req.body.name;
+    const harbor_towerid = req.body.harbor_towerid;
+    const category = req.body.category;
+    const tower = await Tower.findById(tower_id);
     tower.name = name;
     tower.harbor_towerid = harbor_towerid;
     tower.category = category;
-    return tower.save();
-  })
-  .then(result => {
-    console.log('Updated Successfully');
-    req.flash('notice', 'Tower was Successfully Updated')
-    res.redirect(`/admin/towers?store_id=${store}`);
-  })
-  .catch(err => {
-    console.log(err);
-  })
+
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      const store = await Store.findById(store_id);
+      const categories = await Category.find({store: { _id: store_id }});
+
+      res.render('towers/edit-tower', {
+        pageTitle: 'Edit Tower',
+        path: '/admin/edit-tower',
+        tower: tower,
+        editing: true,
+        isAuthenticated: req.session.isLoggedIn,
+        currentUser: req.session.user,
+        nestedData: true,
+        store: store,
+        categories: categories,
+        validationErrors: validationErrors
+      });
+    }
+    else {
+      await tower.save();
+      req.flash('notice', 'Tower was Successfully Updated')
+      res.redirect(`/admin/towers?store_id=${store_id}`);
+    }
+  } catch (error) {
+    console.log(error)
+  }
 };
 
 exports.postDeleteTower = (req, res, next) => {

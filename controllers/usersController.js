@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require('bcryptjs');
 const Store = require('../models/store');
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../models/validations/formatErrorMessage');
 
 exports.getUsers = async (req, res, next) => {
   const currentUser = req.session.user;
@@ -49,6 +51,7 @@ exports.getUsers = async (req, res, next) => {
 
 exports.getAddUser = async (req, res, next) => {
   try {
+    let stores = [];
     let store;
     const store_id = req.query.store_id;
     const currentUser = req.session.user
@@ -66,8 +69,10 @@ exports.getAddUser = async (req, res, next) => {
       nestedData = true;
       store = await Store.findById(store_id);
     }
+    else{
+      stores = await Store.find();
+    }
 
-    const stores = await Store.find();
     res.render('users/edit-user',{
       pageTitle: 'Add User',
       path: path,
@@ -77,7 +82,9 @@ exports.getAddUser = async (req, res, next) => {
       currentUser: currentUser,
       nestedData: nestedData,
       isAuthenticated: req.session.isLoggedIn,
-      roleOptions: roleOptions
+      roleOptions: roleOptions,
+      validationErrors: [],
+      user: null
     })
   } catch (error) {
     console.log(error);
@@ -92,25 +99,68 @@ exports.postAddUser = async (req, res, next) => {
   const password = req.body.password;
   const username = req.body.username;
   const login_pin = req.body.login_pin;
-  const store = req.body.store;
+  const store_id = req.body.store;
+  const is_nested_data = req.body.is_nested_data == 'true';
+
   let hashedPassword;
   let hashedLoginPin;
   try {
     if (role == 3) {
       hashedPassword = null
-      hashedLoginPin = await bcrypt.hash(login_pin, 12);
+      if(login_pin) hashedLoginPin = await bcrypt.hash(login_pin, 12);
     }
     else{
-      hashedPassword = await bcrypt.hash(password, 12);
+      if (password) hashedPassword = await bcrypt.hash(password, 12);
       hashedLoginPin = null
     }  
     const user = new User({
       first_name: first_name, last_name: last_name, email: email, role: role, password: hashedPassword,
-      username: username, login_pin: hashedLoginPin, store: store
+      username: username, login_pin: hashedLoginPin, store: store_id
     });
-    user.save();
-    req.flash('notice', 'User was Successfully Created')
-    res.redirect('/admin/users');
+
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      let stores = [];
+      let store;
+      const currentUser = req.session.user
+      let roleOptions;
+      let nestedData = false;
+      if(currentUser.role == 1){
+        roleOptions = store_id ? [["Admin",  2]] : [["Super Admin", 1 ], ["Admin",  2]];
+      } 
+      else if(currentUser.role == 2) {
+        roleOptions = [["Admin", 2], ["Store Associate", 3]]
+      }
+      let path = '/admin/users';
+      if(is_nested_data && store_id){
+        path = '/admin/store/users';
+        nestedData = true;
+        store = await Store.findById(store_id);
+      }
+      else{
+        stores = await Store.find();
+      }
+    
+      res.render('users/edit-user',{
+        pageTitle: 'Add User',
+        path: path,
+        editing: false,
+        stores: stores,
+        store: store,
+        currentUser: currentUser,
+        nestedData: nestedData,
+        isAuthenticated: req.session.isLoggedIn,
+        roleOptions: roleOptions,
+        validationErrors: validationErrors,
+        user: user
+      })
+    }
+    else {
+      user.save();
+      req.flash('notice', 'User was Successfully Created')
+      if(is_nested_data && store_id) res.redirect(`/admin/users?store_id=${store_id}`);
+      else res.redirect('/admin/users');
+    }
   } catch (error) {
     console.log(error)
   }
@@ -149,7 +199,8 @@ exports.getEditUser = async (req, res, next) => {
       nestedData: nestedData,
       currentUser: currentUser,
       isAuthenticated: req.session.isLoggedIn,
-      roleOptions: roleOptions
+      roleOptions: roleOptions,
+      validationErrors: []
     });
   })
   .catch(err => {
@@ -161,7 +212,7 @@ exports.postEditUser = async (req, res, next) => {
   try {
     const password = req.body.password;
     const login_pin = req.body.login_pin;
-    const store = req.body.store;
+    const store_id = req.body.store;
     const role =  +req.body.role;
     const user = await User.findById(req.body.user_id);
     user.first_name = req.body.first_name;
@@ -169,8 +220,9 @@ exports.postEditUser = async (req, res, next) => {
     user.email = req.body.email;
     user.role = role;
     user.username = req.body.username;
-    if(store) { 
-      user.store = store
+    const is_nested_data = req.body.is_nested_data == 'true';
+    if(store_id) { 
+      user.store = store_id
     } else {
       user.store = null;
     }
@@ -181,10 +233,46 @@ exports.postEditUser = async (req, res, next) => {
     if (role != 3 && password) {
       user.password = await bcrypt.hash(password, 12)
       user.login_pin = null
-    }  
-    await user.save();
-    req.flash('notice', 'User was Successfully Updated')
-    res.redirect('/admin/users');
+    }
+    let validationErrors = formatErrorMessagesByKey(validationResult(req));
+    if(validationErrors.length > 0){
+      console.log('validationErrors', validationErrors);
+      const currentUser = req.session.user
+      let roleOptions;
+      if(currentUser.role == 1){
+        roleOptions = [["Super Admin", 1 ], ["Admin",  2]];
+      } 
+      else if(currentUser.role == 2) {
+        roleOptions = [["Admin", 2], ["Store Associate", 3]]
+      }
+      let store;
+      let stores;
+      if(is_nested_data && store_id){
+        store = await Store.findById(store_id);
+      }
+      else{
+        stores = await Store.find();
+      }
+      res.render('users/edit-user', {
+        pageTitle: 'Users',
+        path: '/admin/users',
+        user: user,
+        editing: true,
+        stores: stores,
+        store: store,
+        nestedData: is_nested_data,
+        currentUser: currentUser,
+        isAuthenticated: req.session.isLoggedIn,
+        roleOptions: roleOptions,
+        validationErrors: validationErrors
+      });
+    }
+    else {
+      await user.save();
+      req.flash('notice', 'User was Successfully Updated')
+      if(is_nested_data && store_id) res.redirect(`/admin/users?store_id=${store_id}`);
+      else res.redirect('/admin/users');
+    }
   } catch (error) {
     console.log(error);
   }

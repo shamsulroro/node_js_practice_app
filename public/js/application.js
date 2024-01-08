@@ -1,4 +1,3 @@
-
 async function populateLockers(event) {
   const selectElement = event.target;
   const selectedTowerId = selectElement.value;
@@ -14,3 +13,4 @@ async function populateLockers(event) {
     lockersElement.innerHTML = lockerOptions;
   }
 }
+

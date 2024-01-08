@@ -27,6 +27,7 @@ app.set('views', 'views');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use(
   session({
     secret: 'my secret',
@@ -59,10 +60,10 @@ app.use('/device_info', (req, res, next) => {
 
 app.use('/', (req, res, next) => {
   console.log('/path is default')
-  if(req.path != '/'){
-    next()
-  }
-  else if (req.session.user) {
+  // if(req.path != '/'){
+  //   next()
+  // }
+  if (req.session.user) {
     if(req.session.user.role == 1) {
       res.redirect('/admin/stores');
     } else if(req.session.user.role == 2) {

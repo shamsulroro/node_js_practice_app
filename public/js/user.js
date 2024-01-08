@@ -24,3 +24,9 @@ function togglePasswordAndLoginPinFields(selectedRole){
     document.getElementById("storeAssociateFields").style.display = "block";
   }
 }
+
+$( document ).ready(function() {
+  const roleDropdown = document.getElementById("userRole");
+  const selectedRole = roleDropdown.options[roleDropdown.selectedIndex].value;
+  togglePasswordAndLoginPinFields(selectedRole);
+});

@@ -6,7 +6,15 @@
       method="POST">
       <div class="mb-3">
         <label for="name" class="form-label">Name</label>
-        <input type="text" name="name" id="name" class="form-control" value="<% if (editing) { %><%= category.name %><% } %>">
+        <% let error = validationErrors.find( (error) => error.path === 'name' ) %>
+        <% if(error) { %>
+          <input type="text" name="name" id="name" class="form-control is-invalid" value="<%= error.value %>">
+          <div class="invalid-feedback">
+            <%= error.msg %>
+          </div>
+        <% } else { %>  
+          <input type="text" name="name" id="name" class="form-control" value="<% if (editing || category) { %><%= category.name %><% } %>">
+        <% } %>
       </div>
 
       <input type="hidden" value="<%= store._id %>" name="store">

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const isAuth = require('../middleware/is-auth');
+const { checkSchema } = require('express-validator');
 
 const usersController = require('../controllers/usersController');
 const storesController = require('../controllers/storesController');
@@ -8,6 +9,12 @@ const towersController = require('../controllers/towersController');
 const categoriesController = require('../controllers/categoriesController');
 const lockersController = require('../controllers/lockersController');
 const activityHistoriesController = require('../controllers/activityHistoriesController');
+
+const { createStoreValidationSchema, UpdateStoreValidationSchema } = require('../models/validations/storeValidationSchema')
+const { createUserValidationSchema, updateUserValidationSchema } = require('../models/validations/userValidationSchema')
+const { createCategoryValidationSchema, updateCategoryValidationSchema } = require('../models/validations/categoryValidationSchema')
+const { createTowerValidationSchema, updateTowerValidationSchema } = require('../models/validations/towerValidationSchema')
+const { createLockerValidationSchema, updateLockerValidationSchema } = require('../models/validations/lockerValidationSchema');
 
 // --------------------------- Store routes ---------------------------
 // /admin/stores => GET
@@ -17,13 +24,14 @@ router.get('/stores', isAuth, storesController.getStores);
 router.get('/new-store', isAuth, storesController.getNewStore);
 
 // /admin/create-store => POST
-router.post('/create-store', isAuth, storesController.postCreateStore);
+router.post('/create-store', checkSchema(createStoreValidationSchema), isAuth, storesController.postCreateStore
+);
 
 // /admin/edit-store/:store_id => GET
 router.get('/edit-store/:store_id', isAuth, storesController.getEditStore);
 
 // /admin/update-store => POST
-router.post('/update-store', isAuth, storesController.postUpdateStore);
+router.post('/update-store', checkSchema(UpdateStoreValidationSchema), isAuth, storesController.postUpdateStore);
 
 // /admin/delete-store/ => POST
 router.post('/delete-store', isAuth, storesController.postDeleteStore);
@@ -36,13 +44,13 @@ router.get('/users', isAuth, usersController.getUsers);
 router.get('/new-user', isAuth, usersController.getAddUser);
 
 // /admin/add-user => POST
-router.post('/add-user', isAuth, usersController.postAddUser);
+router.post('/add-user', checkSchema(createUserValidationSchema), isAuth, usersController.postAddUser);
 
 // /admin/edit-product/:product_id => GET
 router.get('/edit-user/:user_id', isAuth, usersController.getEditUser);
 
 // /admin/update-user/ => POST
-router.post('/update-user', isAuth, usersController.postEditUser);
+router.post('/update-user', checkSchema(updateUserValidationSchema), isAuth, usersController.postEditUser);
 
 // /admin/delete-user/ => POST
 router.post('/delete-user', isAuth, usersController.postDeleteUser);
@@ -55,13 +63,13 @@ router.get('/towers', isAuth, towersController.getTowers);
 router.get('/new-tower', isAuth, towersController.getNewTower);
 
 // /admin/create-tower => POST
-router.post('/create-tower', isAuth, towersController.postCreateTower);
+router.post('/create-tower', checkSchema(createTowerValidationSchema), isAuth, towersController.postCreateTower);
 
 // /admin/edit-tower/:tower_id => GET
 router.get('/edit-tower/:tower_id', isAuth, towersController.getEditTower);
 
 // /admin/update-tower => POST
-router.post('/update-tower', isAuth, towersController.postUpdateTower);
+router.post('/update-tower', checkSchema(updateTowerValidationSchema), isAuth, towersController.postUpdateTower);
 
 // /admin/delete-tower/ => POST
 router.post('/delete-tower', isAuth, towersController.postDeleteTower);
@@ -74,13 +82,13 @@ router.get('/categories', isAuth, categoriesController.getCategories);
 router.get('/new-category', isAuth, categoriesController.getNewCategory);
 
 // /admin/create-category => POST
-router.post('/create-category', isAuth, categoriesController.postCreateCategory);
+router.post('/create-category', checkSchema(createCategoryValidationSchema), isAuth, categoriesController.postCreateCategory);
 
 // /admin/edit-tower/:category_id => GET
 router.get('/edit-category/:category_id', isAuth, categoriesController.getEditCategory);
 
 // /admin/update-category => POST
-router.post('/update-category', isAuth, categoriesController.postUpdateCategory);
+router.post('/update-category', checkSchema(updateCategoryValidationSchema), isAuth, categoriesController.postUpdateCategory);
 
 // /admin/delete-category/ => POST
 router.post('/delete-category', isAuth, categoriesController.postDeleteCategory);
@@ -93,13 +101,13 @@ router.get('/lockers', isAuth, lockersController.getLockers);
 router.get('/new-locker', isAuth, lockersController.getNewLocker);
 
 // /admin/create-locker => POST
-router.post('/create-locker', isAuth, lockersController.postCreateLocker);
+router.post('/create-locker', checkSchema(createLockerValidationSchema), isAuth, lockersController.postCreateLocker);
 
 // /admin/edit-locker/:locker_id => GET
 router.get('/edit-locker/:locker_id', isAuth, lockersController.getEditLocker);
 
 // /admin/update-locker => POST
-router.post('/update-locker', isAuth, lockersController.postUpdateLocker);
+router.post('/update-locker', checkSchema(updateLockerValidationSchema), isAuth, lockersController.postUpdateLocker);
 
 // /admin/delete-locker/ => POST
 router.post('/delete-locker', isAuth, lockersController.postDeleteLocker);

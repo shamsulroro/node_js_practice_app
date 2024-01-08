@@ -2,7 +2,8 @@ const AccessLog = require('../../../models/access_log');
 const Tower = require('../../../models/tower');
 const Locker = require('../../../models/locker');
 const ActivityHistory = require('../../../models/activity_history');
-const access_log = require('../../../models/access_log');
+const { validationResult } = require('express-validator');
+const { formatErrorMessagesByKey } = require('../../../models/validations/formatErrorMessage');
 
 exports.getAccessLogs = async (req, res, next) => {
   try {
@@ -51,23 +52,29 @@ exports.postCreateAccessLog = async (req, res, next) => {
         tower: tower_id, locker: locker_id, 
         harbor_towerid: tower.harbor_towerid, harbor_lockerid: locker.harbor_lockerid
       });
-     
-      await access_log.save();
-      const activity_history = new ActivityHistory({ tower: tower._id, locker: locker._id, store: tower.store,
-        access_log: access_log._id, harbor_towerid: tower.harbor_towerid, harbor_lockerid: locker.harbor_lockerid,
-        activity: 'Associate attempted to open', status: 'success', user: currentUser._id });
-      await activity_history.save();
+      
+      let validationErrors = formatErrorMessagesByKey(validationResult(req));
+      if(validationErrors.length > 0) {
+        await access_log.save();
+        const activity_history = new ActivityHistory({ tower: tower._id, locker: locker._id, store: tower.store,
+          access_log: access_log._id, harbor_towerid: tower.harbor_towerid, harbor_lockerid: locker.harbor_lockerid,
+          activity: 'Associate attempted to open', status: 'success', user: currentUser._id });
+        await activity_history.save();
 
-      return res.json({
-        "id": access_log._id,
-        "tower_id": tower._id,
-        "harbor_lockerid": access_log.harbor_lockerid,
-        "harbor_towerid": access_log.harbor_towerid,
-        "created_at": access_log.createdAt,
-        "tower_name": tower.name,
-        "locker_name": locker.name,
-        "tower_category_name": tower.category.name
-      });
+        return res.json({
+          "id": access_log._id,
+          "tower_id": tower._id,
+          "harbor_lockerid": access_log.harbor_lockerid,
+          "harbor_towerid": access_log.harbor_towerid,
+          "created_at": access_log.createdAt,
+          "tower_name": tower.name,
+          "locker_name": locker.name,
+          "tower_category_name": tower.category.name
+        });
+      }
+      else {
+        return res.status(422).json(validationErrors);
+      }
     }
     else {
       return res.status(403).json({

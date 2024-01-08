@@ -4,10 +4,8 @@ const User = require('../models/user');
 module.exports = async (req, res, next) => {
   try {
     const secret = 'your-secret-key';
-    console.log("req.header", req)
     const authorizationToken = req.header('Authorization');
     let token = '';
-    console.log("authorizationToken", authorizationToken)
     if(authorizationToken){
       token = authorizationToken.split(' ')[1];
     }
