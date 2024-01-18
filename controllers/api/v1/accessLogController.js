@@ -16,7 +16,7 @@ exports.getAccessLogs = async (req, res, next) => {
     .populate({ path: 'tower', populate: { path: 'category' }})
     .populate({ path: 'locker' })
     .sort({ createdAt: 'desc'});
-
+   
     formattedJsonData = access_logs.map( access_log => {
       return {
         "id": access_log._id,
@@ -32,7 +32,7 @@ exports.getAccessLogs = async (req, res, next) => {
 
     return res.json(formattedJsonData);
   } catch (error) {
-    console.log(error);
+    console.log('error:', error);
     return res.status(422).json({ error: error });
   }
 };
@@ -54,7 +54,7 @@ exports.postCreateAccessLog = async (req, res, next) => {
       });
       
       let validationErrors = formatErrorMessagesByKey(validationResult(req));
-      if(validationErrors.length > 0) {
+      if(validationErrors.length == 0) {
         await access_log.save();
         const activity_history = new ActivityHistory({ tower: tower._id, locker: locker._id, store: tower.store,
           access_log: access_log._id, harbor_towerid: tower.harbor_towerid, harbor_lockerid: locker.harbor_lockerid,
