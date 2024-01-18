@@ -10,11 +10,11 @@ exports.postValidateLogin = async (req,res, next) => {
       res.json({ });
     }
     else {
-      res.status(422).json({error: "User not found" });
+      res.status(422).json({ error: "User not found" });
     }
   } catch (error) {
-    console.log(error);
-    res.status(422).json({error: "User not found" });
+    // console.log(error);
+    res.status(422).json({ error: "User not found" });
   }
 }
 
@@ -24,13 +24,12 @@ exports.postLogin = async (req, res, next) => {
     const login_pin = req.body.login_pin;
     const user =  await User.findOne({ username: username });
     if (!user) {
-      res.status(422).json({ error: 'unauthorized' });
+      return res.status(422).json({ error: 'unauthorized' });
     }
     else{
       const doMatch = await bcrypt.compare(login_pin, user.login_pin);
       if(doMatch) {
         const full_name = `${user.first_name}  ${user.last_name}`;
-
         const payload = {
           id: user._id,
           username: user.username
@@ -40,14 +39,13 @@ exports.postLogin = async (req, res, next) => {
         token = jwt.sign(payload, secret, options);
         req.session.user = user;
         req.session.save();
-        res.json({ token: token, store_id: user.store, full_name: full_name });
+        return res.json({ token: token, store_id: user.store, full_name: full_name });
       }
       else {
-        res.status(422).json({ error: 'unauthorized' });
+        return res.status(422).json({ error: 'unauthorized' });
       }
     }
   } catch (error) {
-    console.log(error);
-    res.status(422).json({ error: 'unauthorized' });
+    return res.status(422).json({ error: 'unauthorized' });
   }
 };
